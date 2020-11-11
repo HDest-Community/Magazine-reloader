@@ -162,10 +162,10 @@ class HDMagazineReloader : HDWeapon
 		+INVENTORY.INVBAR
 		+HDWEAPON.FITSINBACKPACK
 		Inventory.PickupSound "misc/w_pkup";
-		Inventory.PickupMessage "Picked up a universal reloading device.";
+		Inventory.PickupMessage "Picked up a magazine reloading device.";
 		Scale 0.6;
 		HDWeapon.RefId "mrl";
-		Tag "Universal reloading device";
+		Tag "Magazine reloading device";
 	}
 
 	States
