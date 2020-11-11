@@ -1,0 +1,281 @@
+version "4.0"
+
+class HDMagazineReloader : HDWeapon
+{
+	enum RProperty
+	{
+		RProperty_SelectedMagazine
+	}
+
+	override string, double GetPickupSprite() { return "MRLDA0", 1.0; }
+	override string GetHelpText()
+	{
+		return WEPHELP_FIRE.."  Reload magazine\n"
+		..WEPHELP_ZOOM.."+"..WEPHELP_FIRE.."/"..WEPHELP_ALTFIRE.."  Cycle magazines\n"
+		..WEPHELP_FIREMODE.."+"..WEPHELP_FIRE.."/"..WEPHELP_ALTFIRE.."  Cycle stacks";
+	}
+	override double GunMass() { return 0; }
+	override double WeaponBulk() { return 50 * Amount; }
+	override bool AddSpareWeapon(actor newowner) { return AddSpareWeaponRegular(newowner); }
+	override HDWeapon GetSpareWeapon(actor newowner, bool reverse, bool doselect) { return GetSpareWeaponRegular(newowner, reverse, doselect); }
+
+	private action void A_UpdateMagazines()
+	{
+		// [Ace] Not using self here because it might change depending on whether or not the reloader is on the ground. Sure, there's no reason to call it there, but I like to be safe.
+		if (!invoker.owner)
+		{
+			return;
+		}
+
+		invoker.Magazines.Clear();
+		Inventory Next = invoker.owner.Inv;
+		while (Next)
+		{
+			let Mag = HDMagAmmo(Next);
+			if (Mag && Mag.RoundType)
+			{
+				invoker.Magazines.Push(Mag);
+			}
+			Next = Next.Inv;
+		}
+	}
+
+	protected clearscope HDMagAmmo GetSelectedMagazine()
+	{
+		int Size = Magazines.Size();
+		int SelIndex = WeaponStatus[RProperty_SelectedMagazine];
+		if (Size > 0 && SelIndex < Size)
+		{
+			return Magazines[SelIndex];
+		}
+
+		return null;
+	}
+
+	override void ActualPickup(actor other, bool silent)
+	{
+		Super.ActualPickup(other, silent);
+
+		if (!owner)
+		{
+			return;
+		}
+
+		HDMagAmmo.GiveMag(owner, LoadedMagType, LoadedMagRounds);
+		LoadedMagType = null;
+		LoadedMagRounds = 0;
+
+		while (LoadedRounds > 0)
+		{
+			if (owner.A_JumpIfInventory(LoadedRoundsType, 0, "null"))
+			{
+				owner.A_SpawnItemEx(LoadedRoundsType, 0, 0, owner.height - 16, 2, 0, 1);
+			}
+			else
+			{
+				HDF.Give(owner, LoadedRoundsType, 1);
+			}
+			LoadedRounds--;
+		}
+		LoadedRoundsType = null;
+	}
+
+	override void DrawHUDStuff(HDStatusBar sb, HDWeapon hdw, HDPlayerPawn hpl)
+	{
+		vector2 bob = hpl.hudbob * 0.3;
+		int BaseYOffset = -100;
+		int Distance = 40;
+		
+		sb.DrawImage("MRLDA0", (0, BaseYOffset) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_ITEM_CENTER, alpha: 1.0, scale:(2, 2));
+
+		let CurrMag = GetSelectedMagazine();
+		if (CurrMag)
+		{
+			int MagAmount = CurrMag.Mags[CurrMag.Mags.Size() - 1];
+			sb.DrawImage(CurrMag.GetMagSprite(MagAmount), (-Distance, BaseYOffset) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_ITEM_CENTER, scale: (2.5, 2.5));
+			sb.DrawString(sb.pSmallFont, sb.FormatNumber(MagAmount, 1, 3), (-Distance, BaseYOffset + 20) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_TEXT_ALIGN_CENTER, Font.CR_SAPPHIRE);
+
+			let LooseAmmo = GetDefaultByType(CurrMag.RoundType);
+			sb.DrawImage(TexMan.GetName(LooseAmmo.Icon), (Distance, BaseYOffset) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_ITEM_CENTER, scale: (2.5, 2.5));
+			sb.DrawString(sb.pSmallFont, sb.FormatNumber(hpl.CountInv(CurrMag.RoundType), 1, 4), (Distance, BaseYOffset + 20) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_TEXT_ALIGN_CENTER, Font.CR_WHITE);
+		}
+		else
+		{
+			sb.DrawString(sb.pSmallFont, "No magazine selected.", (0, BaseYOffset + 30) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_TEXT_ALIGN_CENTER, Font.CR_GOLD);
+		}
+	}
+
+	protected action void A_CheckCycle(int type, int cycleDir)
+	{
+		switch (type)
+		{
+			case 0:
+				A_UpdateMagazines();
+				int Size = invoker.Magazines.Size();
+				if (Size == 0)
+				{
+					return;
+				}
+				int SelIndex = invoker.WeaponStatus[RProperty_SelectedMagazine];
+				switch (cycleDir)
+				{
+					case 1:
+						++SelIndex %= Size;
+						break;
+					case -1:
+						SelIndex = SelIndex == 0 ? invoker.Magazines.Size() - 1 : SelIndex - 1;
+						break;
+				}
+				invoker.WeaponStatus[RProperty_SelectedMagazine] = SelIndex;
+				break;
+			case 1:
+				HDMagAmmo Mag = invoker.GetSelectedMagazine();
+				if (!Mag)
+				{
+					return;
+				}
+				switch (cycleDir)
+				{
+					case 1:
+						Mag.FirstToLast();
+						break;
+					case -1:
+						Mag.LastToFirst();
+						break;
+				}
+				break;
+		}
+	}
+
+	private class<HDMagAmmo> LoadedMagType;
+	private int LoadedMagRounds;
+	private class<Inventory> LoadedRoundsType;
+	private int LoadedRounds;
+	private int ChugSpeed;
+	protected Array<HDMagAmmo> Magazines;
+	private int ChugTicker;
+
+	Default
+	{
+		+WEAPON.WIMPY_WEAPON
+		+INVENTORY.INVBAR
+		+HDWEAPON.FITSINBACKPACK
+		Inventory.PickupSound "misc/w_pkup";
+		Inventory.PickupMessage "Picked up a universal reloading device.";
+		Scale 0.6;
+		HDWeapon.RefId "mrl";
+		Tag "Universal reloading device";
+	}
+
+	States
+	{
+		Spawn:
+			MRLD A -1 NoDelay A_JumpIf(invoker.LoadedRounds > 0, "Chug");
+			Stop;
+		Select0:
+			TNT1 A 0
+			{
+				A_UpdateMagazines();
+				A_Raise(999);
+			}
+			Wait;
+		Deselect0:
+			TNT1 A 0 A_Lower(999);
+			Wait;
+		Ready:
+			TNT1 A 1 A_WeaponReady(WRF_ALLOWUSER3);
+			Goto ReadyEnd;
+		Fire:
+			TNT1 A 5
+			{
+				if (PressingZoom())
+				{
+					A_CheckCycle(0, 1);
+				}
+				else if (PressingFiremode())
+				{
+					A_CheckCycle(1, 1);
+				}
+				else
+				{
+					HDMagAmmo SelMag = invoker.GetSelectedMagazine();
+					if (!SelMag)
+					{
+						Console.Printf("kek");
+						return;
+					}
+					
+					invoker.LoadedMagType = SelMag.GetClass();
+					invoker.LoadedRoundsType = SelMag.RoundType;
+					invoker.LoadedMagRounds = SelMag.TakeMag(false);
+					int RoundsLeft = SelMag.MaxPerUnit - invoker.LoadedMagRounds;
+					int RoundsInInv = CountInv(SelMag.RoundType);
+					int RoundsToLoad = min(RoundsLeft, RoundsInInv);
+					if (RoundsToLoad > 0)
+					{
+						invoker.LoadedRounds = RoundsToLoad;
+						invoker.ChugSpeed = 1;
+						A_TakeInventory(SelMag.RoundType, RoundsToLoad);
+						DropInventory(invoker);
+					}
+				}
+			}
+			Goto Ready;
+		AltFire:
+			TNT1 A 5
+			{
+				if (PressingZoom())
+				{
+					A_CheckCycle(0, -1);
+				}
+				else if (PressingFiremode())
+				{
+					A_CheckCycle(1, -1);
+				}
+			}
+			Goto Ready;
+		User3:
+			#### A 0 A_SelectWeapon("PickupManager");
+			Goto Ready;
+		Chug:
+			#### A 0
+			{
+				A_StartSound("roundmaker/chug1", 8);
+				A_StartSound("roundmaker/chug2", 9);
+				vel.z += randompick(-1, 1);
+				vel.xy += (frandom(-0.3, 0.3),frandom(-0.3, 0.3));
+
+				if (invoker.ChugTicker++ >= invoker.ChugSpeed)
+				{
+					invoker.ChugTicker = 0;
+					return ResolveState("InsertRound");
+				}
+
+				return ResolveState(null);
+			}
+			#### A 3;
+			Loop;
+		InsertRound:
+			#### A 0
+			{
+				invoker.LoadedMagRounds++;
+				invoker.LoadedRounds--;
+
+				if (invoker.LoadedRounds == 0)
+				{
+					A_StartSound("roundmaker/pop", 10);
+					Actor a; bool success;
+					[success, a] = A_SpawnItemEx(invoker.LoadedMagType, 0, 0, 0, 1, 0, 3, 0, SXF_NOCHECKPOSITION);
+					if (success)
+					{
+						let Mag = HDMagAmmo(a);
+						Mag.Mags.Clear();
+						Mag.Amount = 0;
+						Mag.AddAMag(invoker.LoadedMagRounds + (invoker.LoadedMagRounds == 50 && Mag is "HD4mMag" ? 1 : 0));
+					}
+				}
+			}
+			#### A 0 A_Jump(256, "Spawn");
+			Stop;
+	}
+}
