@@ -56,7 +56,7 @@ class HDMagazineReloader : HDWeapon
 	{
 		Super.ActualPickup(other, silent);
 
-		if (!owner)
+		if (!owner || !LoadedMagType)
 		{
 			return;
 		}
