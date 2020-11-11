@@ -202,7 +202,6 @@ class HDMagazineReloader : HDWeapon
 					HDMagAmmo SelMag = invoker.GetSelectedMagazine();
 					if (!SelMag)
 					{
-						Console.Printf("kek");
 						return;
 					}
 					
