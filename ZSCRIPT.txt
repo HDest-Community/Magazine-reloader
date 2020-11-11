@@ -272,6 +272,7 @@ class HDMagazineReloader : HDWeapon
 						Mag.Mags.Clear();
 						Mag.Amount = 0;
 						Mag.AddAMag(invoker.LoadedMagRounds + (invoker.LoadedMagRounds == 50 && Mag is "HD4mMag" ? 1 : 0));
+						invoker.LoadedMagType = null;
 					}
 				}
 			}
