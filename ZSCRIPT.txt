@@ -200,7 +200,7 @@ class HDMagazineReloader : HDWeapon
 				else
 				{
 					HDMagAmmo SelMag = invoker.GetSelectedMagazine();
-					if (!SelMag)
+					if (!SelMag || SelMag.Mags[SelMag.Mags.Size() - 1] >= SelMag.MaxPerUnit)
 					{
 						return;
 					}
