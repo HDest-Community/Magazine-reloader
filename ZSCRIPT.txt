@@ -93,7 +93,7 @@ class HDMagazineReloader : HDWeapon
 		{
 			int RealAmount = CurrMag.Mags[CurrMag.Mags.Size() - 1];
 			int MagAmount = CurrMag.GetMagHudCount(RealAmount);
-			sb.DrawImage(CurrMag.GetMagSprite(RealAmount), (-Distance, BaseYOffset) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_ITEM_CENTER, scale: (2.5, 2.5));
+			sb.DrawImage(CurrMag.GetMagSprite(RealAmount), (-Distance, BaseYOffset) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_ITEM_CENTER, scale: (3.0, 3.0));
 			sb.DrawString(sb.pSmallFont, sb.FormatNumber(MagAmount, 1, 3), (-Distance, BaseYOffset + 20) + bob, sb.DI_SCREEN_CENTER_BOTTOM | sb.DI_TEXT_ALIGN_CENTER, Font.CR_SAPPHIRE);
 
 			let LooseAmmo = GetDefaultByType(CurrMag.RoundType);
