@@ -200,19 +200,20 @@ class HDMagazineReloader : HDWeapon
 				else
 				{
 					HDMagAmmo SelMag = invoker.GetSelectedMagazine();
-					if (!SelMag || SelMag.Mags[SelMag.Mags.Size() - 1] >= SelMag.MaxPerUnit)
+					if (!SelMag)
 					{
 						return;
 					}
 					
 					invoker.LoadedMagType = SelMag.GetClass();
 					invoker.LoadedRoundsType = SelMag.RoundType;
-					invoker.LoadedMagRounds = SelMag.TakeMag(false);
+					invoker.LoadedMagRounds = SelMag.Mags[SelMag.Mags.Size() - 1];
 					int RoundsLeft = SelMag.MaxPerUnit - invoker.LoadedMagRounds;
 					int RoundsInInv = CountInv(SelMag.RoundType);
 					int RoundsToLoad = min(RoundsLeft, RoundsInInv);
 					if (RoundsToLoad > 0)
 					{
+						SelMag.TakeMag(false);
 						invoker.LoadedRounds = RoundsToLoad;
 						invoker.ChugSpeed = 1;
 						A_TakeInventory(SelMag.RoundType, RoundsToLoad);
@@ -271,7 +272,7 @@ class HDMagazineReloader : HDWeapon
 						let Mag = HDMagAmmo(a);
 						Mag.Mags.Clear();
 						Mag.Amount = 0;
-						Mag.AddAMag(invoker.LoadedMagRounds + (invoker.LoadedMagRounds == 50 && Mag is "HD4mMag" ? 1 : 0));
+						Mag.AddAMag(invoker.LoadedMagRounds);
 						invoker.LoadedMagType = null;
 					}
 				}
