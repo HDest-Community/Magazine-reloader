@@ -23,7 +23,7 @@ class HDMagazineReloader : HDWeapon
 		..WEPHELP_FIRE.."/"..WEPHELP_ALTFIRE.."  Cycle stacks";
 	}
 	override double GunMass() { return 0; }
-	override double WeaponBulk() { return 40 * Amount; }
+	override double WeaponBulk() { return 30 * Amount; }
 	override bool AddSpareWeapon(actor newowner) { return AddSpareWeaponRegular(newowner); }
 	override HDWeapon GetSpareWeapon(actor newowner, bool reverse, bool doselect) { return GetSpareWeaponRegular(newowner, reverse, doselect); }
 
