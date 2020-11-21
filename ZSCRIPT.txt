@@ -48,6 +48,27 @@ class HDMagazineReloader : HDWeapon
 		}
 	}
 
+	override void DropOneAmmo(int amt)
+	{
+		if (owner)
+		{
+			let SelMag = GetSelectedMagazine();
+
+			if (SelMag)
+			{
+				Actor a; bool success;
+				[success, a] = owner.A_SpawnItemEx(SelMag.GetClass(), 0, 0, owner.height / 2 + 6, 2, 0, 1, 0, SXF_NOCHECKPOSITION);
+				if (success)
+				{
+					let Mag = HDMagAmmo(a);
+					Mag.Mags.Clear();
+					Mag.Amount = 0;
+					Mag.AddAMag(SelMag.TakeMag(false));
+				}
+			}
+		}
+	}
+
 	protected clearscope HDMagAmmo GetSelectedMagazine()
 	{
 		int Size = Magazines.Size();
@@ -162,7 +183,7 @@ class HDMagazineReloader : HDWeapon
 	{
 		A_StartSound("roundmaker/pop", 10);
 		Actor a; bool success;
-		[success, a] = A_SpawnItemEx(invoker.LoadedMagType, 0, 0, 0, 1, 0, 3, 0, SXF_NOCHECKPOSITION);
+		[success, a] = A_SpawnItemEx(invoker.LoadedMagType, 0, 0, 0, -1, randompick(-2, 2), 3, 0, SXF_NOCHECKPOSITION);
 		if (success)
 		{
 			let Mag = HDMagAmmo(a);
