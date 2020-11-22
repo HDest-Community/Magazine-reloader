@@ -285,7 +285,18 @@ class HDMagazineReloader : HDWeapon
 			}
 			Goto Ready;
 		User3:
-			#### A 0 A_SelectWeapon("PickupManager");
+			#### A 0
+			{
+				let SelMag = invoker.GetSelectedMagazine();
+				if (SelMag)
+				{
+					A_MagManager(SelMag.GetClassName());
+				}
+				else
+				{
+					A_SelectWeapon("PickupManager");
+				}
+			}
 			Goto Ready;
 		Chug:
 			#### A 0
