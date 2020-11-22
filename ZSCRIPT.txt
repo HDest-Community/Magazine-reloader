@@ -72,8 +72,8 @@ class HDMagazineReloader : HDWeapon
 	protected clearscope HDMagAmmo GetSelectedMagazine()
 	{
 		int Size = Magazines.Size();
-		int SelIndex = WeaponStatus[RProperty_SelectedMagazine];
-		if (Size > 0 && SelIndex < Size)
+		int SelIndex = clamp(WeaponStatus[RProperty_SelectedMagazine], 0, Size - 1);
+		if (Size > 0)
 		{
 			return Magazines[SelIndex];
 		}
