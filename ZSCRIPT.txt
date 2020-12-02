@@ -85,12 +85,15 @@ class HDMagazineReloader : HDWeapon
 	{
 		Super.ActualPickup(other, silent);
 
-		if (!owner || !LoadedMagType)
+		if (!owner)
 		{
 			return;
 		}
 
-		HDMagAmmo.GiveMag(owner, LoadedMagType, LoadedMagRounds);
+		if (LoadedMagType)
+		{
+			HDMagAmmo.GiveMag(owner, LoadedMagType, LoadedMagRounds);
+		}
 		LoadedMagType = null;
 		LoadedMagRounds = 0;
 
@@ -337,7 +340,7 @@ class HDMagazineReloader : HDWeapon
 						break;
 					case FAction_Unload:
 						invoker.LoadedMagRounds--;
-						A_SpawnItemEx(invoker.LoadedRoundsType, 0, 0, 0, 1, 0, 3, 0, SXF_NOCHECKPOSITION);
+						invoker.LoadedRounds++;
 						if (invoker.LoadedMagRounds == 0)
 						{
 							A_PopMag();
