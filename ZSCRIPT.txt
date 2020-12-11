@@ -85,27 +85,27 @@ class HDMagazineReloader : HDWeapon
 	{
 		Super.ActualPickup(other, silent);
 
-		if (!owner)
+		if (!other)
 		{
 			return;
 		}
 
 		if (LoadedMagType)
 		{
-			HDMagAmmo.GiveMag(owner, LoadedMagType, LoadedMagRounds);
+			HDMagAmmo.GiveMag(other, LoadedMagType, LoadedMagRounds);
 		}
 		LoadedMagType = null;
 		LoadedMagRounds = 0;
 
 		while (LoadedRounds > 0)
 		{
-			if (owner.A_JumpIfInventory(LoadedRoundsType, 0, "null"))
+			if (other.A_JumpIfInventory(LoadedRoundsType, 0, "null"))
 			{
-				owner.A_SpawnItemEx(LoadedRoundsType, 0, 0, owner.height - 16, 2, 0, 1);
+				other.A_SpawnItemEx(LoadedRoundsType, 0, 0, owner.height - 16, 2, 0, 1);
 			}
 			else
 			{
-				HDF.Give(owner, LoadedRoundsType, 1);
+				HDF.Give(other, LoadedRoundsType, 1);
 			}
 			LoadedRounds--;
 		}
