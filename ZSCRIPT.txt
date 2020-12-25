@@ -213,7 +213,6 @@ class HDMagazineReloader : HDWeapon
 		+WEAPON.WIMPY_WEAPON
 		+INVENTORY.INVBAR
 		+HDWEAPON.FITSINBACKPACK
-		+HDWEAPON.DONTFISTONDROP
 		Inventory.PickupSound "misc/w_pkup";
 		Inventory.PickupMessage "Picked up a magazine reloading device.";
 		Scale 0.6;
