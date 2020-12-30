@@ -102,7 +102,7 @@ class HDMagazineReloader : HDWeapon
 		{
 			if (other.A_JumpIfInventory(LoadedRoundsType, 0, "null"))
 			{
-				other.A_SpawnItemEx(LoadedRoundsType, 0, 0, owner.height - 16, 2, 0, 1);
+				other.A_SpawnItemEx(LoadedRoundsType, 0, 0, other.height - 16, 2, 0, 1);
 			}
 			else
 			{
