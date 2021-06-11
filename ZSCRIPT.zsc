@@ -24,7 +24,7 @@ class HDMagazineReloader : HDWeapon
 	{
 		Super.Tick();
 
-		if (!owner && FactoryAction != FAction_None)
+		if (!owner && !IsFrozen() && FactoryAction != FAction_None && !IsBeingPickedUp)
 		{
 			if (ChargeUp < 360 && vel.length() <= 0.4)
 			{
@@ -39,7 +39,7 @@ class HDMagazineReloader : HDWeapon
 
 	override bool OnGrab(Actor other)
 	{
-		ChargeUp = 0;
+		IsBeingPickedUp = true;
 
 		return Super.OnGrab(other);
 	}
@@ -76,6 +76,7 @@ class HDMagazineReloader : HDWeapon
 
 		FactoryAction = FAction_None;
 		Active = false;
+		IsBeingPickedUp = false;
 	}
 
 	override void DrawHUDStuff(HDStatusBar sb, HDWeapon hdw, HDPlayerPawn hpl)
@@ -123,6 +124,7 @@ class HDMagazineReloader : HDWeapon
 	private int MaxToLoad;
 	private int ChugTicker;
 	private int ChargeUp;
+	private bool IsBeingPickedUp;
 
 	Default
 	{
