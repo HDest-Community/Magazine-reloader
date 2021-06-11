@@ -26,7 +26,7 @@ class HDMagazineReloader : HDWeapon
 
 		if (!owner && FactoryAction != FAction_None)
 		{
-			if (ChargeUp < 360 && (vel.length() <= 0.4 || Active))
+			if (ChargeUp < 360 && vel.length() <= 0.4)
 			{
 				ChargeUp += 10;
 			}
@@ -35,6 +35,13 @@ class HDMagazineReloader : HDWeapon
 				A_SpawnParticle(FactoryAction == FAction_Reload ? 0xFFFF33 : 0xFF7733, SPF_RELATIVE | SPF_FULLBRIGHT, 1, 10, -i, SearchRange, 0, floorz - pos.z, startalphaf: 0.10);
 			}			
 		}
+	}
+
+	override bool OnGrab(Actor other)
+	{
+		ChargeUp = 0;
+
+		return Super.OnGrab(other);
 	}
 
 	override void ActualPickup(actor other, bool silent)
@@ -69,7 +76,6 @@ class HDMagazineReloader : HDWeapon
 
 		FactoryAction = FAction_None;
 		Active = false;
-		ChargeUp = 0;
 	}
 
 	override void DrawHUDStuff(HDStatusBar sb, HDWeapon hdw, HDPlayerPawn hpl)
