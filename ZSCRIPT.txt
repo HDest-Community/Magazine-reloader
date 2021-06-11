@@ -157,6 +157,7 @@ class HDMagazineReloader : HDWeapon
 		Reload:
 			TNT1 A 5
 			{
+				invoker.ChargeUp = 0;
 				invoker.FactoryAction = FAction_Reload;
 				DropInventory(invoker);
 			}
@@ -164,6 +165,7 @@ class HDMagazineReloader : HDWeapon
 		Unload:
 			TNT1 A 5
 			{
+				invoker.ChargeUp = 0;
 				invoker.FactoryAction = FAction_Unload;
 				DropInventory(invoker);
 			}
