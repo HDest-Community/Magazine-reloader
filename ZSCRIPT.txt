@@ -26,10 +26,14 @@ class HDMagazineReloader : HDWeapon
 
 		if (!owner && FactoryAction != FAction_None)
 		{
-			for (int i = 0; i < 360; ++i)
+			if (ChargeUp < 360 && (vel.length() <= 0.4 || Active))
 			{
-				A_SpawnParticle(FactoryAction == FAction_Reload ? 0xFFFF33 : 0xFF7733, SPF_RELPOS | SPF_FULLBRIGHT, 1, 10, i, SearchRange, 0, -(pos.z - floorz), startalphaf: 0.15);
+				ChargeUp += 10;
 			}
+			for (int i = 0; i < ChargeUp; ++i)
+			{
+				A_SpawnParticle(FactoryAction == FAction_Reload ? 0xFFFF33 : 0xFF7733, SPF_RELATIVE | SPF_FULLBRIGHT, 1, 10, -i, SearchRange, 0, floorz - pos.z, startalphaf: 0.10);
+			}			
 		}
 	}
 
@@ -65,6 +69,7 @@ class HDMagazineReloader : HDWeapon
 
 		FactoryAction = FAction_None;
 		Active = false;
+		ChargeUp = 0;
 	}
 
 	override void DrawHUDStuff(HDStatusBar sb, HDWeapon hdw, HDPlayerPawn hpl)
@@ -111,6 +116,7 @@ class HDMagazineReloader : HDWeapon
 	private int LoadedRounds;
 	private int MaxToLoad;
 	private int ChugTicker;
+	private int ChargeUp;
 
 	Default
 	{
@@ -196,7 +202,7 @@ class HDMagazineReloader : HDWeapon
 					while (it.Next())
 					{
 						let mag = HDMagAmmo(it.thing);
-						if (!mag || Distance3D(mag) > SearchRange || mag.vel.length() > 0.6 || vel.length() > 0.6 || mag is 'HDInjectorMaker' || !mag.RoundType || invoker.FactoryAction == FAction_Reload && mag.Mags[0] == mag.MaxPerUnit || invoker.FactoryAction == FAction_Unload && mag.Mags[0] == 0)
+						if (!mag || Distance3D(mag) > SearchRange || invoker.ChargeUp < 360 || mag.vel.length() > 0.4 || mag is 'HDInjectorMaker' || !mag.RoundType || invoker.FactoryAction == FAction_Reload && mag.Mags[0] == mag.MaxPerUnit || invoker.FactoryAction == FAction_Unload && mag.Mags[0] == 0)
 						{
 							continue;
 						}
