@@ -195,7 +195,7 @@ class HDMagazineReloader : HDWeapon
 									continue;
 								}
 
-								int req = invoker.MaxToLoad - max(invoker.LoadedRounds, invoker.LoadedMagRounds);
+								int req = invoker.MaxToLoad - invoker.LoadedMagRounds - invoker.LoadedRounds;
 								int toTake = min(req, upkp ? upkp.Amount : pkp.Amount);
 								if (upkp)
 								{
@@ -214,7 +214,7 @@ class HDMagazineReloader : HDWeapon
 									}
 								}
 								invoker.LoadedRounds += toTake;
-								if (invoker.LoadedRounds == req)
+								if (invoker.LoadedRounds == invoker.MaxToLoad - invoker.LoadedMagRounds)
 								{
 									invoker.Active = true;
 									break;
