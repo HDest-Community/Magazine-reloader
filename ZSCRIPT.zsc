@@ -185,17 +185,40 @@ class HDMagazineReloader : HDWeapon
 					{
 						case FAction_Reload:
 						{
-							if (invoker.LoadedRounds < invoker.MaxToLoad - invoker.LoadedMagRounds)
+							BlockThingsIterator it = BlockThingsIterator.Create(invoker, SearchRange);
+							while (it.Next())
 							{
-								if (CheckProximity(invoker.LoadedRoundsType, SearchRange, 1, CPXF_ANCESTOR | CPXF_SETTRACER))
+								let pkp = HDRoundAmmo(it.thing);
+								let upkp = HDUPK(it.thing);
+								if (pkp && pkp.GetClass() != invoker.LoadedRoundsType || upkp && upkp.pickuptype != invoker.LoadedRoundsType || !pkp && !upkp)
 								{
-									invoker.LoadedRounds += Inventory(tracer).Amount;
-									tracer.Destroy();
+									continue;
 								}
-							}
-							else
-							{
-								invoker.Active = true;
+
+								int req = invoker.MaxToLoad - max(invoker.LoadedRounds, invoker.LoadedMagRounds);
+								int toTake = min(req, upkp ? upkp.Amount : pkp.Amount);
+								if (upkp)
+								{
+									upkp.Amount -= toTake;
+									if (upkp.Amount == 0)
+									{
+										upkp.Destroy();
+									}
+								}
+								else
+								{
+									pkp.Amount -= toTake;
+									if (pkp.Amount == 0)
+									{
+										pkp.Destroy();
+									}
+								}
+								invoker.LoadedRounds += toTake;
+								if (invoker.LoadedRounds == req)
+								{
+									invoker.Active = true;
+									break;
+								}
 							}
 							break;
 						}
@@ -208,7 +231,7 @@ class HDMagazineReloader : HDWeapon
 				}
 				else
 				{
-					BlockThingsIterator it = BlockThingsIterator.Create(self, SearchRange);
+					BlockThingsIterator it = BlockThingsIterator.Create(invoker, SearchRange);
 					while (it.Next())
 					{
 						let mag = HDMagAmmo(it.thing);
@@ -235,7 +258,7 @@ class HDMagazineReloader : HDWeapon
 				vel.z += frandompick(-0.4, 0.4);
 				vel.xy += (frandom(-0.05, 0.05), frandom(-0.05, 0.05));
 
-				if (invoker.ChugTicker++ >= 1)
+				if (invoker.ChugTicker++ == 1)
 				{
 					invoker.ChugTicker = 0;
 					return ResolveState("InsertRound");
