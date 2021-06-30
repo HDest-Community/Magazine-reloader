@@ -188,9 +188,9 @@ class HDMagazineReloader : HDWeapon
 							BlockThingsIterator it = BlockThingsIterator.Create(invoker, SearchRange);
 							while (it.Next())
 							{
-								let pkp = HDRoundAmmo(it.thing);
+								let pkp = HDAmmo(it.thing);
 								let upkp = HDUPK(it.thing);
-								if (pkp && pkp.GetClass() != invoker.LoadedRoundsType || upkp && upkp.pickuptype != invoker.LoadedRoundsType || !pkp && !upkp)
+								if (invoker.Distance3D(it.thing) > SearchRange || it.thing.vel.length() > 0.4 || pkp && pkp.GetClass() != invoker.LoadedRoundsType || upkp && upkp.pickuptype != invoker.LoadedRoundsType || !pkp && !upkp)
 								{
 									continue;
 								}
