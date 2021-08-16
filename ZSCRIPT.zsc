@@ -114,6 +114,39 @@ class HDMagazineReloader : HDWeapon
 		invoker.Active = false;
 	}
 
+	protected action void A_Tether(Actor other)
+	{
+		other.A_Face(invoker, 0, 0);
+		other.A_ChangeVelocity(1, 0, 1 * sin(other.pitch), CVF_RELATIVE | CVF_REPLACE);
+		vector3 dir = invoker.Vec3To(other);
+		dir.z -= invoker.height / 3;
+		vector3 unit = dir.unit();
+		for (double i = 0; i < invoker.Distance3D(other); i += 0.75)
+		{
+			invoker.A_SpawnParticle(0x00CCCC, SPF_FULLBRIGHT, 1, 1.5, 0, unit.x * i, unit.y * i, invoker.height / 2 + unit.z * i);
+		}
+	}
+
+	protected action bool A_IsBeingTethered(Actor other)
+	{
+		if (invoker.TractoredMag == other)
+		{
+			return true;
+		}
+		if (invoker.TractoredBox == other)
+		{
+			return true;
+		}
+		for (int i = 0; i < invoker.TractoredRounds.Size(); ++i)
+		{
+			if (invoker.TractoredRounds[i] && invoker.TractoredRounds[i] == other)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	const SearchRange = 42;
 	private bool Active;
 	private FAction FactoryAction;
@@ -125,6 +158,9 @@ class HDMagazineReloader : HDWeapon
 	private int ChugTicker;
 	private int ChargeUp;
 	private bool IsBeingPickedUp;
+	private HDMagAmmo TractoredMag;
+	private HDAmmo TractoredRounds[5];
+	private HDUPK TractoredBox;
 
 	Default
 	{
@@ -188,39 +224,99 @@ class HDMagazineReloader : HDWeapon
 							BlockThingsIterator it = BlockThingsIterator.Create(invoker, SearchRange);
 							while (it.Next())
 							{
-								let pkp = HDAmmo(it.thing);
+								let am = HDAmmo(it.thing);
 								let upkp = HDUPK(it.thing);
-								if (invoker.Distance3D(it.thing) > SearchRange || it.thing.vel.length() > 0.4 || pkp && pkp.GetClass() != invoker.LoadedRoundsType || upkp && upkp.pickuptype != invoker.LoadedRoundsType || !pkp && !upkp)
+								if (invoker.Distance3D(it.thing) > SearchRange || it.thing.vel.length() > 0.4 || am && am.GetClass() != invoker.LoadedRoundsType || upkp && upkp.pickuptype != invoker.LoadedRoundsType || !am && !upkp)
 								{
 									continue;
 								}
 
-								int req = invoker.MaxToLoad - invoker.LoadedMagRounds - invoker.LoadedRounds;
-								int toTake = min(req, upkp ? upkp.Amount : pkp.Amount);
-								if (upkp)
+								if (upkp && !invoker.TractoredBox)
 								{
-									upkp.Amount -= toTake;
-									if (upkp.Amount == 0)
+									invoker.TractoredBox = upkp;
+								}
+								else if (am && !A_IsBeingTethered(am))
+								{
+									for (int i = 0; i < invoker.TractoredRounds.Size(); ++i)
 									{
-										upkp.Destroy();
+										if (!invoker.TractoredRounds[i])
+										{
+											invoker.TractoredRounds[i] = am;
+											break;
+										}
+									}
+								}
+							}
+
+
+							// [Ace] Prioritize boxes.
+							if (invoker.TractoredBox)
+							{
+								double dist = invoker.Distance3D(invoker.TractoredBox);
+								if (dist <= SearchRange)
+								{
+									if (dist > 2)
+									{
+										A_Tether(invoker.TractoredBox);
+									}
+									else
+									{
+										int req = invoker.MaxToLoad - invoker.LoadedMagRounds - invoker.LoadedRounds;
+										int toTake = min(req, invoker.TractoredBox.Amount);
+										invoker.TractoredBox.Amount -= toTake;
+										invoker.LoadedRounds += toTake;
+										if (invoker.TractoredBox.Amount == 0)
+										{
+											invoker.TractoredBox.Destroy();
+										}
+										if (invoker.LoadedRounds == invoker.MaxToLoad - invoker.LoadedMagRounds)
+										{
+											invoker.Active = true;
+										}
 									}
 								}
 								else
 								{
-									pkp.Amount -= toTake;
-									if (pkp.Amount == 0)
-									{
-										pkp.Destroy();
-									}
-								}
-								invoker.LoadedRounds += toTake;
-								if (invoker.LoadedRounds == invoker.MaxToLoad - invoker.LoadedMagRounds)
-								{
-									invoker.Active = true;
-									break;
+									invoker.TractoredBox = null;
 								}
 							}
-							break;
+							else for (int i = 0; i < invoker.TractoredRounds.Size(); ++i)
+							{
+								if (!invoker.TractoredRounds[i])
+								{
+									continue;
+								}
+
+								double dist = invoker.Distance3D(invoker.TractoredRounds[i]);
+								if (dist <= SearchRange)
+								{
+									if (dist > 2)
+									{
+										A_Tether(invoker.TractoredRounds[i]);
+									}
+									else
+									{
+										int req = invoker.MaxToLoad - invoker.LoadedMagRounds - invoker.LoadedRounds;
+										int toTake = min(req, invoker.TractoredRounds[i].Amount);
+										invoker.TractoredRounds[i].Amount -= toTake;
+										invoker.LoadedRounds += toTake;
+										if (invoker.TractoredRounds[i].Amount == 0)
+										{
+											invoker.TractoredRounds[i].Destroy();
+										}
+										if (invoker.LoadedRounds == invoker.MaxToLoad - invoker.LoadedMagRounds)
+										{
+											invoker.Active = true;
+											break;
+										}
+									}
+								}
+								else
+								{
+									invoker.TractoredRounds[i] = null;
+								}
+							}
+							break; // [Ace] Deleting this will break stuff. So don't do it again.
 						}
 						case FAction_Unload:
 						{
@@ -231,20 +327,43 @@ class HDMagazineReloader : HDWeapon
 				}
 				else
 				{
-					BlockThingsIterator it = BlockThingsIterator.Create(invoker, SearchRange);
-					while (it.Next())
+					if (!invoker.TractoredMag)
 					{
-						let mag = HDMagAmmo(it.thing);
-						if (!mag || invoker.Distance3D(mag) > SearchRange || invoker.ChargeUp < 360 || mag.vel.length() > 0.4 || mag is 'HDInjectorMaker' || !mag.RoundType || invoker.FactoryAction == FAction_Reload && mag.Mags[0] == mag.MaxPerUnit || invoker.FactoryAction == FAction_Unload && mag.Mags[0] == 0)
+						BlockThingsIterator it = BlockThingsIterator.Create(invoker, SearchRange);
+						while (it.Next())
 						{
-							continue;
+							let mag = HDMagAmmo(it.thing);
+							if (!mag || invoker.Distance3D(mag) > SearchRange || invoker.ChargeUp < 360 || mag.vel.length() > 0.4 || mag is 'HDInjectorMaker' || !mag.RoundType || invoker.FactoryAction == FAction_Reload && mag.Mags[0] == mag.MaxPerUnit || invoker.FactoryAction == FAction_Unload && mag.Mags[0] == 0)
+							{
+								continue;
+							}
+
+							invoker.TractoredMag = mag;
+							break;
 						}
-						invoker.LoadedMagType = mag.GetClass();
-						invoker.LoadedMagRounds = mag.Mags[0];
-						invoker.LoadedRoundsType = mag.RoundType;
-						invoker.MaxToLoad = mag.MaxPerUnit;
-						mag.Destroy();
-						break;
+					}
+					else
+					{
+						double dist = invoker.Distance3D(invoker.TractoredMag);
+						if (dist <= SearchRange)
+						{
+							if (dist > 2)
+							{
+								A_Tether(invoker.TractoredMag);
+							}
+							else
+							{
+								invoker.LoadedMagType = invoker.TractoredMag.GetClass();
+								invoker.LoadedMagRounds = invoker.TractoredMag.Mags[0];
+								invoker.LoadedRoundsType = invoker.TractoredMag.RoundType;
+								invoker.MaxToLoad = invoker.TractoredMag.MaxPerUnit;
+								invoker.TractoredMag.Destroy();
+							}
+						}
+						else
+						{
+							invoker.TractoredMag = null;
+						}
 					}
 				}
 				return ResolveState(null);
