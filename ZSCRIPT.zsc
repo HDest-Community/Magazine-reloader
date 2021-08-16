@@ -248,7 +248,6 @@ class HDMagazineReloader : HDWeapon
 								}
 							}
 
-
 							// [Ace] Prioritize boxes.
 							if (invoker.TractoredBox)
 							{
