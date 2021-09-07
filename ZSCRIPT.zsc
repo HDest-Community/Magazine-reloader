@@ -147,7 +147,7 @@ class HDMagazineReloader : HDWeapon
 		return false;
 	}
 
-	const SearchRange = 42;
+	const SearchRange = HDCONST_ONEMETRE;
 	private bool Active;
 	private FAction FactoryAction;
 	private class<HDMagAmmo> LoadedMagType;
