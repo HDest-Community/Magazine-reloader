@@ -134,6 +134,7 @@ class HDMagazineReloader : HDWeapon
 		return false;
 	}
 
+	const MinDist = 5.0;
 	const SearchRange = HDCONST_ONEMETRE;
 	private bool Active;
 	private FAction FactoryAction;
@@ -241,7 +242,7 @@ class HDMagazineReloader : HDWeapon
 								double dist = invoker.Distance3D(invoker.TractoredBox);
 								if (dist <= SearchRange)
 								{
-									if (dist > 2)
+									if (dist > MinDist)
 									{
 										AceCore.Tether(invoker, invoker.TractoredBox);
 									}
@@ -276,7 +277,7 @@ class HDMagazineReloader : HDWeapon
 								double dist = invoker.Distance3D(invoker.TractoredRounds[i]);
 								if (dist <= SearchRange)
 								{
-									if (dist > 2)
+									if (dist > MinDist)
 									{
 										AceCore.Tether(invoker, invoker.TractoredRounds[i]);
 									}
@@ -333,7 +334,7 @@ class HDMagazineReloader : HDWeapon
 						double dist = invoker.Distance3D(invoker.TractoredMag);
 						if (dist <= SearchRange)
 						{
-							if (dist > 2)
+							if (dist > MinDist)
 							{
 								AceCore.Tether(invoker, invoker.TractoredMag);
 							}
