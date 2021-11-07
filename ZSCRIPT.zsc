@@ -102,7 +102,7 @@ class HDMagazineReloader : HDWeapon
 			invoker.LoadedMagType = null;
 			if (invoker.LoadedRounds > 0)
 			{
-				[success, a] = A_SpawnItemEx(invoker.LoadedRoundsType, 0, 0, 0, -0.5, 1, 3, 0, SXF_NOCHECKPOSITION);
+				[success, a] = A_SpawnItemEx(invoker.LoadedRoundsType, 0, 0, 0, -0.5, -2, 3, 0, SXF_NOCHECKPOSITION);
 				if (success)
 				{
 					Inventory(a).Amount = invoker.LoadedRounds;
