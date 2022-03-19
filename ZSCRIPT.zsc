@@ -16,7 +16,7 @@ class HDMagazineReloader : HDWeapon
 		..WEPHELP_UNLOAD.."  Drop in unload mode\n";
 	}
 	override double GunMass() { return 0; }
-	override double WeaponBulk() { return 50 * Amount; }
+	override double WeaponBulk() { return 35; }
 	override bool AddSpareWeapon(actor newowner) { return AddSpareWeaponRegular(newowner); }
 	override HDWeapon GetSpareWeapon(actor newowner, bool reverse, bool doselect) { return GetSpareWeaponRegular(newowner, reverse, doselect); }
 
