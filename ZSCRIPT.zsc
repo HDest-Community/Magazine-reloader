@@ -81,7 +81,7 @@ class HDMagazineReloader : HDWeapon
 
 	override void DrawHUDStuff(HDStatusBar sb, HDWeapon hdw, HDPlayerPawn hpl)
 	{
-		vector2 bob = hpl.hudbob * 0.3;
+		vector2 bob = hpl.wepbob * 0.3;
 		int BaseYOffset = -110;
 		int Distance = 40;
 		
